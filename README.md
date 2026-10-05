@@ -129,13 +129,3 @@ Stage ablations remove the corresponding acceptance requirement while retaining 
 For binary evaluation, **Verified** is positive; **Rejected** and **Inconclusive** are non-positive. Each seed is counted once, while the distinct tri-state outcomes remain recorded.
 
 Execution commands and expected outputs will be provided in [WISE-Fix_evaluation/](./WISE-Fix_evaluation/).
-
-## 🖥️ 9. Hardware and Timing
-
-Online measurements in the manuscript use an **NVIDIA RTX 3090 system**. This describes the experimental environment, not a minimum hardware requirement.
-
-Offline timing covers LLM synthesis and revision, excluding local artifact preparation. Online timing covers post-retrieval processing, excluding repository-wide retrieval.
-
-## 📚 10. Citation and License
-
-Citation metadata, the code license, and upstream dataset licensing information will be added before the completed replication release.
