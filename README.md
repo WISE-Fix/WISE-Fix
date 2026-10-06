@@ -49,16 +49,35 @@ The tested Python version, analysis toolchain, dependency versions, and installa
 
 ### Phase 1: Offline Verifier Synthesis
 
-The LLM receives a CWE specification, labeled training transitions, a fixed operator library, and an obligation schema. It generates linked Precondition, Repair, and Safety obligations with explicit evidence requirements and compatible cross-stage bindings.
+The LLM receives a CWE specification, labeled training transitions, a fixed operator library $\mathcal{P}$, and an obligation schema $\Sigma$[cite: 6]. It generates linked Precondition, Repair, and Safety obligations with explicit evidence requirements and compatible cross-stage bindings[cite: 6].
 
 ### Phase 2: Validation and Artifact Freezing
 
-Candidate suites undergo schema and type checks, compilation, smoke tests, and development validation.
+Candidate suites undergo schema and type checks, compilation, smoke tests, and development validation[cite: 7].
 
-Acceptance requires precision and recall of at least 0.80 and compliance with the configured FPR threshold. Up to three revisions are allowed after initial evaluation. Suites that fail the checks or exhaust the revision budget without acceptance are marked **Unsupported**.
+Acceptance requires precision and recall of at least 0.80 and compliance with the configured FPR threshold ($p \ge 0.80, \rho \ge 0.80, f \le 0.10$)[cite: 7, 12]. Up to three revisions are allowed after initial evaluation[cite: 7]. Suites that fail the checks or exhaust the revision budget without acceptance are marked **Unsupported**[cite: 7].
 
-Accepted suites are packaged with the operators, evidence validator, decision rules, configuration, feature extractor, and fitted ranking scorer. Artifacts are versioned and protected by SHA-256 integrity checks.
+Accepted suites are packaged with the operators, evidence validator, decision rules, configuration, feature extractor, and fitted ranking scorer $E_w^*$[cite: 7, 8]. Artifacts are versioned and protected by SHA-256 integrity checks[cite: 7, 8].
 
+#### 💻 Execute Phases 1 & 2 (Offline Synthesis, Validation & Freezing)
+
+```bash
+# 1. Configure environment variables and paths
+export TRAIN_SPLIT="./dataset/patch_db/train.jsonl"
+export DEV_SPLIT="./dataset/patch_db/dev.jsonl"
+export TARGET_CWE="CWE-119"
+export ARTIFACTS_DIR="./artifacts"
+export DEEPSEEK_API_KEY="your_api_key_here"
+```
+#### 💻 Synthesize, validate, calibrate scorer, and freeze artifact
+```bash
+python3 wise_fix_engine.py offline-synth \
+  --train-data "$TRAIN_SPLIT" \
+  --dev-data "$DEV_SPLIT" \
+  --cwe "$TARGET_CWE" \
+  --model "deepseek/deepseek-v4-flash" \
+  --output-dir "$ARTIFACTS_DIR"
+```
 ### Phase 3: Sequential Verification
 
 For each candidate, WISE-Fix constructs `(S_before, diff, S_after)` with bounded source and dependency context, then executes:
