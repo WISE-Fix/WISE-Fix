@@ -37,7 +37,6 @@ Dataset access information is available in [Datasets/](./Datasets/), including [
 | [Baselines/](./Baselines/) | Reproduction materials for RepoSPD and RepoSPD–DeepSeek. |
 | [WISE-Fix_evaluation/](./WISE-Fix_evaluation/) | WISE-Fix evaluation materials and reproduction instructions. |
 | `WISE-Fix Overview.png` | Approach overview diagram. |
-| `README.md` | Package overview and usage guide. |
 
 ## 🚀 4. Environment Setup
 
@@ -52,7 +51,9 @@ The tested Python version, analysis toolchain, dependency versions, and installa
 ### Phases 1–2: Offline Synthesis, Validation, and Freezing
 
 An LLM composes fixed operators into linked Precondition, Repair, and Safety obligations using a CWE specification and labeled training examples.
+## Prompt Template
 
+![WISE-Fix Verifier Synthesis Prompt Template](./Prompt-template.png)
 
 ```bash
 python wise-fix.py init --directory ./config
@@ -63,9 +64,8 @@ python wise-fix.py offline \
   --train /path/to/input_folder/train.jsonl \
   --dev /path/to/input_folder/dev.jsonl \
   --config ./config/reference_config.json \
-  --cwe CWE-119 \
   --cwe-spec /path/to/CWE-119.txt \
-  --endpoint https://YOUR_API_HOST/v1 \
+  --endpoint https://YOUR_API_KEY/v1 \
   --model deepseek-v4-flash \
   --output /path/to/output_folder/artifacts/CWE-119.json
 ```
@@ -88,7 +88,7 @@ Unresolved mandatory obligations trigger bounded search only when no stage is vi
 
 Validated evidence determines **Verified**, **Rejected**, or **Inconclusive**. Within a suite, validated rejection takes precedence. Across suites, any Verified result verifies the seed; otherwise, any Inconclusive result or no applicable suite yields Inconclusive.
 
-Only Verified patches are ranked. Scores do not change verdicts.
+Only Verified patches are ranked.
 
 Run repository detection with a frozen artifact:
 
@@ -112,22 +112,22 @@ This command validates supplied or bundled candidate suites, freezes accepted ar
 
 ## Verifier Interface and API
 
-Synthesis produces schema-conforming JSON obligations using permitted operators, compatible bindings, and code-derived evidence. Frozen online execution requires no LLM inference or API key.
+Synthesis generates JSON obligations using fixed operators and compatible bindings. Frozen online verification requires no LLM calls or API key. Keep API keys outside the repository.
 
-Keep API keys outside the repository. The bundled suites cover two specific C repair patterns; exact experimental reproduction requires the corresponding accepted suites, datasets, and settings.
+
 ## 🧪 8. Reproducing the Experiments
 
 | Research Question | Evaluation |
 | --- | --- |
-| RQ1: Effectiveness | Comparison with RepoSPD and RepoSPD–DeepSeek. |
-| RQ2: Verifier Quality | Expert stage judgments, tri-state agreement, and evidence-contract compliance. |
+| RQ1: Effectiveness | RepoSPD and RepoSPD–DeepSeek comparisons. |
+| RQ2: Verifier Quality | Expert judgments, tri-state agreement, and evidence compliance. |
 | RQ3: Weakness-Informed Verification | Agnostic-suite comparison and cross-category selectivity. |
-| RQ4: Verification Components | Stage acceptance-gate and multi-commit processing ablations. |
+| RQ4: Components | Stage acceptance-gate and multi-commit ablations. |
 | RQ5: Robustness | Weakness groups, repository domains, and negative-patch difficulty. |
-| RQ6: Efficiency | Offline LLM costs and post-retrieval online processing costs. |
+| RQ6: Efficiency | Offline LLM costs and post-retrieval online costs. |
 
-Stage ablations remove the corresponding acceptance requirement while retaining stage execution, bindings, rejection conditions, compatibility checks, and search triggers. The multi-commit ablation jointly disables upfront multi-commit context construction and commit-group search.
+Stage ablations remove acceptance gates while retaining execution, bindings, rejection conditions, compatibility checks, and search triggers. The multi-commit ablation disables both upfront multi-commit context and commit-group search.
 
-For binary evaluation, **Verified** is positive; **Rejected** and **Inconclusive** are non-positive. Each seed is counted once, while the distinct tri-state outcomes remain recorded.
+Binary evaluation treats **Verified** as positive and **Rejected/Inconclusive** as non-positive.
 
-Execution commands and expected outputs will be provided in [WISE-Fix_evaluation/](./WISE-Fix_evaluation/).
+Experiment-specific commands and output formats will be documented in [WISE-Fix_evaluation/](./WISE-Fix_evaluation/).
