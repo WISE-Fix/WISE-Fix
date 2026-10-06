@@ -47,91 +47,74 @@ The tested Python version, analysis toolchain, dependency versions, and installa
 
 ## 🔄 5. Detailed Workflow
 
-### Phase 1: Offline Verifier Synthesis
+## WISE-Fix Workflow
 
-The LLM receives a CWE specification, labeled training transitions, a fixed operator library $\mathcal{P}$, and an obligation schema $\Sigma$[cite: 6]. It generates linked Precondition, Repair, and Safety obligations with explicit evidence requirements and compatible cross-stage bindings[cite: 6].
+### Phases 1–2: Offline Synthesis, Validation, and Freezing
 
-### Phase 2: Validation and Artifact Freezing
+An LLM composes fixed operators into linked Precondition, Repair, and Safety obligations using a CWE specification and labeled training examples.
 
-Candidate suites undergo schema and type checks, compilation, smoke tests, and development validation[cite: 7].
-
-Acceptance requires precision and recall of at least 0.80 and compliance with the configured FPR threshold ($p \ge 0.80, \rho \ge 0.80, f \le 0.10$)[cite: 7, 12]. Up to three revisions are allowed after initial evaluation[cite: 7]. Suites that fail the checks or exhaust the revision budget without acceptance are marked **Unsupported**[cite: 7].
-
-Accepted suites are packaged with the operators, evidence validator, decision rules, configuration, feature extractor, and fitted ranking scorer $E_w^*$[cite: 7, 8]. Artifacts are versioned and protected by SHA-256 integrity checks[cite: 7, 8].
-
-#### 💻 Execute Phases 1 & 2 (Offline Synthesis, Validation & Freezing)
 
 ```bash
-# 1. Configure environment variables and paths
-export TRAIN_SPLIT="./dataset/patch_db/train.jsonl"
-export DEV_SPLIT="./dataset/patch_db/dev.jsonl"
-export TARGET_CWE="CWE-119"
-export ARTIFACTS_DIR="./artifacts"
-export DEEPSEEK_API_KEY="your_api_key_here"
+python wise-fix.py init --directory ./config
+
+export DEEPSEEK_API_KEY="your-api-key"
+
+python wise-fix.py offline \
+  --train /path/to/input_folder/train.jsonl \
+  --dev /path/to/input_folder/dev.jsonl \
+  --config ./config/reference_config.json \
+  --cwe CWE-119 \
+  --cwe-spec /path/to/CWE-119.txt \
+  --endpoint https://YOUR_API_HOST/v1 \
+  --model deepseek-v4-flash \
+  --output /path/to/output_folder/artifacts/CWE-119.json
 ```
-#### 💻 Synthesize, validate, calibrate scorer, and freeze artifact
-```bash
-python3 wise_fix_engine.py offline-synth \
-  --train-data "$TRAIN_SPLIT" \
-  --dev-data "$DEV_SPLIT" \
-  --cwe "$TARGET_CWE" \
-  --model "deepseek/deepseek-v4-flash" \
-  --output-dir "$ARTIFACTS_DIR"
-```
+
 ### Phase 3: Sequential Verification
 
-For each candidate, WISE-Fix constructs `(S_before, diff, S_after)` with bounded source and dependency context, then executes:
+Frozen suites evaluate `(S_before, diff, S_after)`:
 
-- **Precondition:** Establish the encoded weakness condition before the patch.
-- **Repair:** Link an explicit edit to the corresponding repair relation.
-- **Safety:** Establish the encoded post-repair property.
+- **Precondition:** Establish the pre-patch weakness.
+- **Repair:** Link an explicit edit to its repair.
+- **Safety:** Establish the encoded post-patch property.
 
-Each stage returns **Satisfied**, **Violated**, or **Unresolved**, together with supporting or contradictory evidence and missing requirements.
+Each stage returns **Satisfied**, **Violated**, or **Unresolved**, with traceable evidence.
 
-### Phase 4: Obligation-Guided Commit-Group Search
+### Phase 4: Commit-Group Search
 
-Search begins only when mandatory obligations remain unresolved and no stage is violated.
-
-WISE-Fix explores bounded, ancestry-compatible commit groups using fixed structural, dependency, and temporal relations. Evaluation admits only the seed and eligible ancestors at the cutoff, excluding later completing commits.
-
-A satisfied composite group also requires confirmation in the seed’s actual post-patch state and evidence that the seed contributes a required mitigating change.
+Unresolved mandatory obligations trigger bounded search only when no stage is violated. Search admits eligible ancestors and excludes later commits. Composite verification requires actual seed-state confirmation and a qualifying mitigating contribution.
 
 ### Phase 5: Evidence Validation and Ranking
 
-The evidence validator checks provenance, scope, correspondence, completeness, consistency, and witness compatibility. Frozen rules then assign:
+Validated evidence determines **Verified**, **Rejected**, or **Inconclusive**. Within a suite, validated rejection takes precedence. Across suites, any Verified result verifies the seed; otherwise, any Inconclusive result or no applicable suite yields Inconclusive.
 
-- **Verified:** The required obligations and applicable contribution requirements are established by validated evidence.
-- **Rejected:** Validated evidence establishes a seed-applicable rejection condition.
-- **Inconclusive:** Neither verification nor rejection is established.
+Only Verified patches are ranked. Scores do not change verdicts.
 
-Within a weakness suite, validated rejection takes precedence. Across suites, any Verified result verifies the candidate. Otherwise, any Inconclusive result—or no applicable suite—yields Inconclusive; remaining cases are Rejected.
+Run repository detection with a frozen artifact:
 
-Only Verified candidates are ranked. Ranking scores do not change verdicts.
+```bash
+python wise-fix.py online \
+  --repo /path/to/git_repository \
+  --artifacts /path/to/output_folder/artifacts/CWE-119.json \
+  --cwes CWE-119 \
+  --output /path/to/output_folder/detection.json
+```
 
-Verification establishes the encoded obligations within the configured analysis scope.
+## Combined Dataset Execution
 
-## 📝 6. Verifier Synthesis Interface
+For an input folder containing `train.jsonl`, `dev.jsonl`, and `test.jsonl`:
 
-**Inputs:** Target CWE, CWE specification, positive and negative training transitions, fixed operators, and output schema.
+```bash
+python wise-fix.py --input /path/to/input_folder --output /path/to/output_folder
+```
 
-**Task:** Generate Precondition, Repair, and Safety obligations specifying scopes, selectors, predicates, bindings, aggregation, and evidence requirements. Keep repair alternatives distinct and preserve compatible cross-stage bindings.
+This command validates supplied or bundled candidate suites, freezes accepted artifacts, evaluates test patches, and saves verdicts, evidence, metrics, and ranked lists.
 
-**Output:** Schema-conforming JSON compiled into deterministic executable verifiers.
+## Verifier Interface and API
 
-**Constraints:** Use only permitted operators and code-derived runtime evidence. Exclude labels and identifying metadata from predicates. Invoke no LLM during execution, and leave final verdict assignment to the frozen decision module.
+Synthesis produces schema-conforming JSON obligations using permitted operators, compatible bindings, and code-derived evidence. Frozen online execution requires no LLM inference or API key.
 
-The full prompts, operator contracts, and JSON schema will accompany the executable release.
-
-## 🔑 7. LLM API Configuration
-
-The manuscript uses **deepseek-v4-flash** for offline synthesis and revision.
-
-- **Offline artifact rebuilding** requires access to the configured LLM service.
-- **Detection with frozen artifacts** requires no LLM API key.
-- **RepoSPD–DeepSeek** uses online LLM inference for direct patch classification.
-
-API configuration and model settings will be documented with the scripts. Keep API keys outside the repository.
-
+Keep API keys outside the repository. The bundled suites cover two specific C repair patterns; exact experimental reproduction requires the corresponding accepted suites, datasets, and settings.
 ## 🧪 8. Reproducing the Experiments
 
 | Research Question | Evaluation |
