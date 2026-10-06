@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""Run candidate or frozen WISE-Fix suites with the repository's main engine."""
 import argparse
 import hashlib
 import importlib.util
