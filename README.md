@@ -25,7 +25,7 @@ We evaluate WISE-Fix on **PatchDB\*** and **SPI-DB\***, the repository-level ben
 | PatchDB* | 23,229 | 2,907 | 2,906 |
 | SPI-DB* | 16,454 | 2,028 | 2,000 |
 
-Training data support verifier synthesis and scorer fitting. Validation data guide bounded revision, suite acceptance, and configuration selection. Test labels and CWE annotations are used only for evaluation and group reporting.
+Training data support verifier synthesis and scorer fitting. Validation data guide bounded revision, suite acceptance, and configuration selection.
 
 Dataset access information is available in [Datasets/](./Datasets/), including [Datasets_link.txt](./Datasets/Datasets_link.txt).
 
