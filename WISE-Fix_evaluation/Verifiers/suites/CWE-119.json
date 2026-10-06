@@ -1,0 +1,90 @@
+{
+  "schema": "obligations-1.0",
+  "cwe": "CWE-119",
+  "alternatives": [
+    {
+      "id": "unsigned_char_length_normalization",
+      "selectors": {
+        "old_length": {
+          "role": "pre",
+          "kind": "Assignment"
+        },
+        "old_arithmetic": {
+          "role": "pre",
+          "kind": "Assignment"
+        },
+        "old_sink": {
+          "role": "pre",
+          "kind": "FuncCall",
+          "name": "ReadBlob"
+        },
+        "new_length": {
+          "role": "post",
+          "kind": "Assignment"
+        },
+        "arithmetic": {
+          "role": "post",
+          "kind": "Assignment"
+        },
+        "sink": {
+          "role": "post",
+          "kind": "FuncCall",
+          "name": "ReadBlob"
+        }
+      },
+      "stages": {
+        "pre": [
+          {
+            "id": "P1",
+            "op": "DIRECT_LENGTH_FLOW",
+            "variable": "length",
+            "accumulator": "combined_length",
+            "image": "image",
+            "producer": "ReadBlobByte",
+            "consumer": "ReadBlob",
+            "outer_type": "MagickSizeType",
+            "normalization_type": "unsigned char",
+            "size_type": "size_t",
+            "assignment": "old_length",
+            "arithmetic": "old_arithmetic",
+            "sink": "old_sink"
+          }
+        ],
+        "repair": [
+          {
+            "id": "R1",
+            "op": "EDIT_LENGTH_NORMALIZES",
+            "variable": "length",
+            "accumulator": "combined_length",
+            "image": "image",
+            "producer": "ReadBlobByte",
+            "consumer": "ReadBlob",
+            "outer_type": "MagickSizeType",
+            "normalization_type": "unsigned char",
+            "size_type": "size_t",
+            "before": "old_length",
+            "after": "new_length",
+            "attribution": true
+          }
+        ],
+        "safety": [
+          {
+            "id": "S1",
+            "op": "NORMALIZED_LENGTH_FLOW",
+            "variable": "length",
+            "accumulator": "combined_length",
+            "image": "image",
+            "producer": "ReadBlobByte",
+            "consumer": "ReadBlob",
+            "outer_type": "MagickSizeType",
+            "normalization_type": "unsigned char",
+            "size_type": "size_t",
+            "assignment": "new_length",
+            "arithmetic": "arithmetic",
+            "sink": "sink"
+          }
+        ]
+      }
+    }
+  ]
+}

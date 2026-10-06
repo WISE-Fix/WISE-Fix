@@ -1,0 +1,8 @@
+{
+  "id": "synthetic-CWE-119",
+  "file": "image.c",
+  "before": "typedef unsigned long MagickSizeType;\ntypedef unsigned long size_t;\ntypedef struct { char *name; } Layer;\nint ReadBlobByte(void *);\nint ReadBlob(void *, size_t, char *);\nint decode(void *image, Layer *layer_info, int i) {\n    MagickSizeType length, combined_length = 0;\n    length = (MagickSizeType) ReadBlobByte(image);\n    combined_length += length + 1;\n    if (length > 0) ReadBlob(image, (size_t) length++, layer_info[i].name);\n    return 0;\n}\n",
+  "after": "typedef unsigned long MagickSizeType;\ntypedef unsigned long size_t;\ntypedef struct { char *name; } Layer;\nint ReadBlobByte(void *);\nint ReadBlob(void *, size_t, char *);\nint decode(void *image, Layer *layer_info, int i) {\n    MagickSizeType length, combined_length = 0;\n    length = (MagickSizeType) (unsigned char) ReadBlobByte(image);\n    combined_length += length + 1;\n    if (length > 0) ReadBlob(image, (size_t) length++, layer_info[i].name);\n    return 0;\n}\n",
+  "diff": "--- a/image.c\n+++ b/image.c\n@@ -5,7 +5,7 @@\n int ReadBlob(void *, size_t, char *);\n int decode(void *image, Layer *layer_info, int i) {\n     MagickSizeType length, combined_length = 0;\n-    length = (MagickSizeType) ReadBlobByte(image);\n+    length = (MagickSizeType) (unsigned char) ReadBlobByte(image);\n     combined_length += length + 1;\n     if (length > 0) ReadBlob(image, (size_t) length++, layer_info[i].name);\n     return 0;\n",
+  "fixture_kind": "synthetic parser-complete illustration; not a repository snapshot"
+}

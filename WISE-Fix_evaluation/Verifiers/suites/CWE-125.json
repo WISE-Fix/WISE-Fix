@@ -1,0 +1,100 @@
+{
+  "schema": "obligations-1.0",
+  "cwe": "CWE-125",
+  "alternatives": [
+    {
+      "id": "destination_bound_correction",
+      "selectors": {
+        "old_guard": {
+          "role": "pre",
+          "kind": "If"
+        },
+        "old_write": {
+          "role": "pre",
+          "kind": "Assignment"
+        },
+        "new_guard": {
+          "role": "post",
+          "kind": "If"
+        },
+        "new_write": {
+          "role": "post",
+          "kind": "FuncCall",
+          "name": "memcpy"
+        }
+      },
+      "stages": {
+        "pre": [
+          {
+            "id": "P1",
+            "op": "DESTINATION_GUARD_MISMATCH",
+            "position": "bitmap_caret",
+            "source_position": "buffer_caret",
+            "count": "encoded_pixels",
+            "width": "pixel_block_size",
+            "capacity": "image_block_size",
+            "destination": "tga->bitmap",
+            "source": "decompression_buffer",
+            "iterator": "i",
+            "inner_iterator": "j",
+            "guard": "old_guard",
+            "write": "old_write"
+          }
+        ],
+        "repair": [
+          {
+            "id": "R1",
+            "op": "DESTINATION_REPAIR_LINK",
+            "position": "bitmap_caret",
+            "source_position": "buffer_caret",
+            "count": "encoded_pixels",
+            "width": "pixel_block_size",
+            "capacity": "image_block_size",
+            "destination": "tga->bitmap",
+            "source": "decompression_buffer",
+            "iterator": "i",
+            "inner_iterator": "j",
+            "before": "old_guard",
+            "after": "new_guard",
+            "old_write": "old_write",
+            "new_write": "new_write"
+          },
+          {
+            "id": "R2",
+            "op": "EDIT_DESTINATION_GUARD",
+            "position": "bitmap_caret",
+            "source_position": "buffer_caret",
+            "count": "encoded_pixels",
+            "width": "pixel_block_size",
+            "capacity": "image_block_size",
+            "destination": "tga->bitmap",
+            "source": "decompression_buffer",
+            "iterator": "i",
+            "inner_iterator": "j",
+            "before": "old_guard",
+            "after": "new_guard",
+            "new_write": "new_write",
+            "attribution": true
+          }
+        ],
+        "safety": [
+          {
+            "id": "S1",
+            "op": "DESTINATION_COPY_GUARDED",
+            "position": "bitmap_caret",
+            "source_position": "buffer_caret",
+            "count": "encoded_pixels",
+            "width": "pixel_block_size",
+            "capacity": "image_block_size",
+            "destination": "tga->bitmap",
+            "source": "decompression_buffer",
+            "iterator": "i",
+            "inner_iterator": "j",
+            "guard": "new_guard",
+            "write": "new_write"
+          }
+        ]
+      }
+    }
+  ]
+}
