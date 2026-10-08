@@ -1,0 +1,3 @@
+{"dataset": "PatchDB*", "weakness_id": "CWE-119", "eligible_train_pos": 393, "eligible_train_neg": 15958, "synthesis_pos": 20, "synthesis_neg": 20, "dev_pos": 49, "dev_neg": 49}
+{"dataset": "PatchDB*", "weakness_id": "CWE-125", "eligible_train_pos": 131, "eligible_train_neg": 15958, "synthesis_pos": 20, "synthesis_neg": 20, "dev_pos": 19, "dev_neg": 19}
+{"dataset": "PatchDB*", "weakness_id": "CWE-787", "eligible_train_pos": 37, "eligible_train_neg": 15958, "synthesis_pos": 20, "synthesis_neg": 20, "dev_pos": 5, "dev_neg": 5}
